@@ -1,23 +1,32 @@
+packages <- c("shiny", "leaflet", "dplyr")
+sapply(packages, function(p) {if (!do.call("require", as.list(p))) {install.packages(p)}})
 
-# This is the server logic for a Shiny web application.
-# You can find out more about building applications with Shiny here:
-#
-# http://shiny.rstudio.com
-#
+if (!file.exists("data/weatherdata.csv")) {
+    source("get_data.R")
+}
 
-library(shiny)
 
 shinyServer(function(input, output) {
 
-  output$distPlot <- renderPlot({
+    weather <- read.csv("data/weatherdata.csv")
 
-    # generate bins based on input$bins from ui.R
-    x    <- faithful[, 2]
-    bins <- seq(min(x), max(x), length.out = input$bins + 1)
+    output$weathermap <- renderLeaflet({
 
-    # draw the histogram with the specified number of bins
-    hist(x, breaks = bins, col = 'darkgray', border = 'white')
+        data <- filter(weather, year == input$year) %>%
+            select(station, year, lat, lon, measure = get(input$measure))
 
-  })
+        map <- leaflet(data = data, width = 800, height = 800) %>%
+            addCircleMarkers(radius = 5, lat = ~lat, lng = ~lon,
+                             popup = ~as.character(station),
+                             opacity = 0.25, stroke = FALSE,
+                             color = ~colorNumeric(palette = "Blues",
+                                              domain = data$measure)
+                             ) %>%
+            addTiles() %>%
+            clearBounds()
+
+        map
+
+    })
 
 })
