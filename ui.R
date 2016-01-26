@@ -9,6 +9,8 @@ packages <- c("shiny", "leaflet")
 sapply(packages, function(p) {if (!do.call("require", as.list(p))) {install.packages(p)}})
 
 
+
+
 shinyUI(
     ui <- pageWithSidebar(
             headerPanel("UK Weather Data"),
