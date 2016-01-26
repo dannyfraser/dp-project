@@ -1,10 +1,10 @@
+
 packages <- c("shiny", "leaflet", "dplyr")
 sapply(packages, function(p) {if (!do.call("require", as.list(p))) {install.packages(p)}})
 
 if (!file.exists("data/weatherdata.csv")) {
     source("get_data.R")
 }
-
 
 shinyServer(function(input, output) {
 
