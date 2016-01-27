@@ -5,3 +5,5 @@
 data/*
 *.zip
 *.RProj
+docs-figure/*
+*.Rpres

@@ -18,7 +18,7 @@ shinyServer(function(input, output) {
         map <- leaflet(data = data, width = 800, height = 800) %>%
             addCircleMarkers(radius = 5, lat = ~lat, lng = ~lon,
                              popup = ~as.character(station),
-                             opacity = 0.25, stroke = FALSE,
+                             opacity = 0.75, stroke = FALSE,
                              color = ~colorNumeric(palette = "Blues",
                                               domain = data$measure)
                              ) %>%
