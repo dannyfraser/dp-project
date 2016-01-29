@@ -2,8 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
-data/*
 *.zip
 *.RProj
 docs-figure/*
 *.Rpres
+download/*

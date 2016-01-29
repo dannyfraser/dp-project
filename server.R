@@ -6,6 +6,25 @@ if (!file.exists("data/weatherdata.csv")) {
     source("get_data.R")
 }
 
+get_palette <- function(measure) {
+    temp_gradient <- colorRampPalette(c("blue", "red"))
+    rain_gradient <- colorRampPalette(c("skyblue", "darkblue"))
+    sun_gradient <- colorRampPalette(c("grey", "yellow"))
+    frost_gradient <- colorRampPalette(c("orange", "steelblue"))
+
+    if (measure == "tmin" || measure == "tmax") {
+        temp_gradient
+    } else if (measure == "rain") {
+        rain_gradient
+    } else if (measure == "sun") {
+        sun_gradient
+    } else if (measure == "airfrost") {
+        frost_gradient
+    }
+
+}
+
+
 shinyServer(function(input, output) {
 
     weather <- read.csv("data/weatherdata.csv")

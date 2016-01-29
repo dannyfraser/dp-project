@@ -2,10 +2,8 @@
 # then saves the tidy output to data/weatherdata.csv
 
 
-library(jsonlite)
-library(readr)
-library(dplyr)
-library(lubridate)
+packages <- c("jsonlite", "readr", "dplyr", "lubridate")
+sapply(packages, function(p) {if (!do.call("require", as.list(p))) {install.packages(p)}})
 
 # helper functions
 get_coord <- function(match, p) {
@@ -32,15 +30,15 @@ get_station_name <- function(d) {
 
 
 
-if (!dir.exists("data")) {
+if (!dir.exists("download")) {
     url <- "https://data.gov.uk/dataset/historic-monthly-meteorological-station-data/datapackage.zip"
-    dir.create("data")
+    dir.create("download")
     download.file(url, "data.zip")
-    unzip("data.zip", exdir = "data")
+    unzip("data.zip", exdir = "download")
 }
 
 # get the relative paths of all data .txt files
-catalog <- fromJSON("data/datapackage.json")$resources %>%
+catalog <- fromJSON("download/datapackage.json")$resources %>%
     filter(format == "txt") %>%
     mutate(station = get_station_name(description)) %>%
     select(station, path)
@@ -55,7 +53,7 @@ extract_data <- function(path, station) {
 
     print(paste("Starting", station, sep = " "))
 
-    data_file <- paste("data", path, sep = "/")
+    data_file <- paste("download", path, sep = "/")
 
     p <- read_lines(data_file)
     station_lat <- get_latitude(p)
@@ -80,6 +78,11 @@ extract_data <- function(path, station) {
 }
 
 mapply(extract_data, catalog$path, catalog$station)
+
+if (!dir.exists("data")) {
+    dir.create("data")
+}
+
 data %>%
     filter(!is.na(year)) %>%
     group_by(station, lat, lon, year) %>%
