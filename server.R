@@ -1,5 +1,5 @@
 
-packages <- c("shiny", "leaflet", "dplyr")
+packages <- c("shiny", "leaflet", "dplyr", "ggplot2")
 sapply(packages, function(p) {if (!do.call("require", as.list(p))) {install.packages(p)}})
 
 if (!file.exists("data/weatherdata.csv")) {
@@ -7,20 +7,18 @@ if (!file.exists("data/weatherdata.csv")) {
 }
 
 get_palette <- function(measure) {
-    temp_gradient <- colorRampPalette(c("blue", "red"))
-    rain_gradient <- colorRampPalette(c("skyblue", "darkblue"))
-    sun_gradient <- colorRampPalette(c("grey", "yellow"))
-    frost_gradient <- colorRampPalette(c("orange", "steelblue"))
 
     if (measure == "tmin" || measure == "tmax") {
-        temp_gradient
+        gradient <- c("blue", "red")
     } else if (measure == "rain") {
-        rain_gradient
+        gradient <- c("skyblue", "darkblue")
     } else if (measure == "sun") {
-        sun_gradient
+        gradient <- c("grey", "yellow")
     } else if (measure == "airfrost") {
-        frost_gradient
+        gradient <- c("orange", "steelblue")
     }
+    print(gradient)
+    colorRampPalette(colors = gradient, interpolate = "linear")
 
 }
 
@@ -33,19 +31,36 @@ shinyServer(function(input, output) {
 
         data <- filter(weather, year == input$year) %>%
             select(station, year, lat, lon, measure = get(input$measure))
-
+#TODO: add colour to map points
         map <- leaflet(data = data, width = 800, height = 800) %>%
             addCircleMarkers(radius = 5, lat = ~lat, lng = ~lon,
                              popup = ~as.character(station),
                              opacity = 0.75, stroke = FALSE,
-                             color = ~colorNumeric(palette = "Blues",
-                                              domain = data$measure)
+                             fillColor = ~get_palette(input$measure),layerId = ~station
                              ) %>%
-            addTiles() %>%
+            addTiles(options = providerTileOptions(noWrap = TRUE)) %>%
             clearBounds()
 
         map
 
     })
+
+    selected_station <- reactiveValues()
+    get_station <- reactive({selected_station$name <- input$weathermap_marker_click$id})
+
+    output$weatherplot <- renderPlot({
+        get_station()
+        print(selected_station$name)
+        filter(weather, station == selected_station$name, year >= 1900, year <= 2015) %>%
+            select(year, measure = get(input$measure)) %>%
+            ggplot(aes(x = year, y = measure)) +
+                geom_line() +
+                theme_minimal() +
+                stat_smooth(method = "lm") +
+                xlab("Year") + ylab(input$measure)
+    })
+
+
+
 
 })

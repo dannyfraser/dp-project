@@ -5,7 +5,7 @@
 # http://shiny.rstudio.com
 #
 
-packages <- c("shiny", "leaflet")
+packages <- c("shiny", "leaflet", "ggvis")
 sapply(packages, function(p) {if (!do.call("require", as.list(p))) {install.packages(p)}})
 
 shinyUI(
@@ -20,7 +20,9 @@ shinyUI(
                                         "Avg Rain" = "rain",
                                         "Avg Sun" = "sun",
                                         "Avg Airfrost" = "airfrost")
-                )
+                ),
+                textOutput("station_name", container = span),
+                plotOutput("weatherplot")
             ),
             mainPanel(
                 leafletOutput("weathermap")
