@@ -7,7 +7,6 @@ if (!file.exists("data/weatherdata.csv")) {
 }
 
 get_palette <- function(measure) {
-
     if (measure == "tmin" || measure == "tmax") {
         gradient <- c("blue", "red")
     } else if (measure == "rain") {
@@ -17,9 +16,7 @@ get_palette <- function(measure) {
     } else if (measure == "airfrost") {
         gradient <- c("orange", "steelblue")
     }
-    print(gradient)
-    colorRampPalette(colors = gradient, interpolate = "linear")
-
+    return(gradient)
 }
 
 
@@ -31,12 +28,18 @@ shinyServer(function(input, output) {
 
         data <- filter(weather, year == input$year) %>%
             select(station, year, lat, lon, measure = get(input$measure))
-#TODO: add colour to map points
+
+        pal <- colorNumeric(
+            palette <-  get_palette(input$measure),
+            domain <-  data$measure
+        )
+
         map <- leaflet(data = data, width = 800, height = 800) %>%
             addCircleMarkers(radius = 5, lat = ~lat, lng = ~lon,
-                             popup = ~as.character(station),
-                             opacity = 0.75, stroke = FALSE,
-                             fillColor = ~get_palette(input$measure),layerId = ~station
+                             popup = ~station,
+                             fillOpacity = 1, stroke = FALSE,
+                             color = ~pal(measure),
+                             layerId = ~station,
                              ) %>%
             addTiles(options = providerTileOptions(noWrap = TRUE)) %>%
             clearBounds()
@@ -44,6 +47,19 @@ shinyServer(function(input, output) {
         map
 
     })
+
+    popup_text <- function(station, year) {
+        p <- filter(weather, station == station, year == year)
+        text <- writeLines(c(
+          station,
+          year,
+          as.character(round(p$tmin, 2)),
+          as.character(round(p$tmax, 2)),
+          as.character(round(p$sun, 2)),
+          as.character(round(p$rain, 2)),
+          as.character(round(p$airfrost, 2))))
+        return(text)
+}
 
     selected_station <- reactiveValues()
     get_station <- reactive({selected_station$name <- input$weathermap_marker_click$id})
