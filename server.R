@@ -30,16 +30,16 @@ shinyServer(function(input, output) {
             select(station, year, lat, lon, measure = get(input$measure))
 
         pal <- colorNumeric(
-            palette <-  get_palette(input$measure),
-            domain <-  data$measure
+            palette = get_palette(input$measure),
+            domain = data$measure
         )
 
         map <- leaflet(data = data, width = 800, height = 800) %>%
             addCircleMarkers(radius = 5, lat = ~lat, lng = ~lon,
-                             popup = ~station,
+                             popup = ~popup_text(station, measure),
                              fillOpacity = 1, stroke = FALSE,
                              color = ~pal(measure),
-                             layerId = ~station,
+                             layerId = ~station
                              ) %>%
             addTiles(options = providerTileOptions(noWrap = TRUE)) %>%
             clearBounds()
@@ -48,18 +48,9 @@ shinyServer(function(input, output) {
 
     })
 
-    popup_text <- function(station, year) {
-        p <- filter(weather, station == station, year == year)
-        text <- writeLines(c(
-          station,
-          year,
-          as.character(round(p$tmin, 2)),
-          as.character(round(p$tmax, 2)),
-          as.character(round(p$sun, 2)),
-          as.character(round(p$rain, 2)),
-          as.character(round(p$airfrost, 2))))
-        return(text)
-}
+    popup_text <- function(station, measure) {
+        paste(station, round(measure, 2), sep = " : ")
+    }
 
     selected_station <- reactiveValues()
     get_station <- reactive({selected_station$name <- input$weathermap_marker_click$id})
@@ -75,8 +66,5 @@ shinyServer(function(input, output) {
                 stat_smooth(method = "lm") +
                 xlab("Year") + ylab(input$measure)
     })
-
-
-
 
 })
